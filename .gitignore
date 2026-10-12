@@ -1,0 +1,21 @@
+# IDE
+.idea/
+*.iml
+out/
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Secrets
+.env
+.env.*
+
+# Data and recordings (never commit market data)
+data/
+*.sbe.zst
+research/**/*.parquet
+
+# OS
+.DS_Store
