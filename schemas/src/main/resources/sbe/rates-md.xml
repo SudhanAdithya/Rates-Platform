@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Market data and recording messages for the rates platform hot path.
+
+  Rules (CLAUDE.md, FRS TC.03 and FR.MD.06):
+  - Prices are int64 counts of the instrument's ticks. No float or double fields anywhere.
+  - Fields are declared widest first (int64, then int32, then uint8) so every field sits at
+    a naturally aligned offset inside the block.
+  - Any change bumps the version attribute, and the commit says whether old recordings still decode.
+-->
+<sbe:messageSchema xmlns:sbe="http://fixprotocol.io/2016/sbe"
+                   package="io.github.sudhanadithya.rates.schemas.md"
+                   id="1"
+                   version="0"
+                   semanticVersion="0.1.0"
+                   description="Rates platform market data and recording messages"
+                   byteOrder="littleEndian">
+    <types>
+        <composite name="messageHeader" description="Standard SBE message header">
+            <type name="blockLength" primitiveType="uint16"/>
+            <type name="templateId" primitiveType="uint16"/>
+            <type name="schemaId" primitiveType="uint16"/>
+            <type name="version" primitiveType="uint16"/>
+        </composite>
+
+        <type name="Symbol" primitiveType="char" length="12" characterEncoding="US-ASCII"
+              description="Exchange symbol, for example ZNZ6, padded with nulls"/>
+
+        <enum name="SourceTag" encodingType="uint8" description="Where a recording's data came from">
+            <validValue name="REAL">0</validValue>
+            <validValue name="SYNTHETIC">1</validValue>
+            <validValue name="LIVE_PROXY">2</validValue>
+        </enum>
+
+        <enum name="Side" encodingType="uint8">
+            <validValue name="BUY">0</validValue>
+            <validValue name="SELL">1</validValue>
+        </enum>
+
+        <enum name="AggressorSide" encodingType="uint8" description="Side of the order that took liquidity">
+            <validValue name="NONE">0</validValue>
+            <validValue name="BUY">1</validValue>
+            <validValue name="SELL">2</validValue>
+        </enum>
+
+        <enum name="UpdateAction" encodingType="uint8" description="MBO book update action">
+            <validValue name="NEW">0</validValue>
+            <validValue name="CHANGE">1</validValue>
+            <validValue name="DELETE">2</validValue>
+        </enum>
+    </types>
+
+    <sbe:message name="RecordingHeader" id="1"
+                 description="First message of every recording. Carries the source tag (CLAUDE.md rule 7)">
+        <field name="startTimeNanos" id="1" type="int64" description="Epoch nanoseconds of the first event"/>
+        <field name="seed" id="2" type="int64" description="Random seed used to produce or replay the recording"/>
+        <field name="instrumentCount" id="3" type="int32"/>
+        <field name="sourceTag" id="4" type="SourceTag"/>
+    </sbe:message>
+
+    <sbe:message name="InstrumentDefinition" id="2" description="Static definition of one tradable instrument">
+        <field name="contractMultiplier" id="1" type="int64" description="Dollars per one full point of price"/>
+        <field name="securityId" id="2" type="int32"/>
+        <field name="tickSize256ths" id="3" type="int32"
+               description="Tick size in 1/256 of a point: ZB 8, ZN 4, ZF 2, ZT 1"/>
+        <field name="symbol" id="4" type="Symbol"/>
+    </sbe:message>
+
+    <sbe:message name="BookUpdate" id="3" description="One market by order book event">
+        <field name="seqNum" id="1" type="int64" description="Channel sequence number"/>
+        <field name="orderId" id="2" type="int64"/>
+        <field name="priceTicks" id="3" type="int64" description="Price in ticks of the instrument"/>
+        <field name="quantity" id="4" type="int64"/>
+        <field name="exchangeTimeNanos" id="5" type="int64" description="Venue transact time, epoch nanoseconds"/>
+        <field name="receiveTimeNanos" id="6" type="int64" description="Local receive time, epoch nanoseconds"/>
+        <field name="securityId" id="7" type="int32"/>
+        <field name="side" id="8" type="Side"/>
+        <field name="action" id="9" type="UpdateAction"/>
+    </sbe:message>
+
+    <sbe:message name="Trade" id="4" description="One trade print">
+        <field name="seqNum" id="1" type="int64" description="Channel sequence number"/>
+        <field name="tradeId" id="2" type="int64"/>
+        <field name="priceTicks" id="3" type="int64" description="Price in ticks of the instrument"/>
+        <field name="quantity" id="4" type="int64"/>
+        <field name="exchangeTimeNanos" id="5" type="int64" description="Venue transact time, epoch nanoseconds"/>
+        <field name="receiveTimeNanos" id="6" type="int64" description="Local receive time, epoch nanoseconds"/>
+        <field name="securityId" id="7" type="int32"/>
+        <field name="aggressorSide" id="8" type="AggressorSide"/>
+    </sbe:message>
+</sbe:messageSchema>

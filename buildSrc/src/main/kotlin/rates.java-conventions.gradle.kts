@@ -1,7 +1,7 @@
 // Applied by every Java module: Java 21 bytecode and APIs, strict compiler warnings, JUnit 5 and AssertJ.
 
 plugins {
-    java
+    `java-library`
 }
 
 val libs = the<VersionCatalogsExtension>().named("libs")
@@ -29,6 +29,15 @@ dependencies {
     testRuntimeOnly(libs.findLibrary("junit-platform-launcher").get())
 }
 
+// Agrona 2.x reads jdk.internal.misc.Unsafe directly, so every JVM that loads Agrona
+// (tests, JavaExec tasks, and later the core processes and JMH forks) needs this export.
+val agronaJvmArgs = listOf("--add-exports", "java.base/jdk.internal.misc=ALL-UNNAMED")
+
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+    jvmArgs(agronaJvmArgs)
+}
+
+tasks.withType<JavaExec>().configureEach {
+    jvmArgs(agronaJvmArgs)
 }
