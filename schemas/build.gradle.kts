@@ -11,6 +11,8 @@ dependencies {
     sbeCodegen(libs.sbe.tool)
     // Generated codecs expose Agrona's DirectBuffer and MutableDirectBuffer in their API.
     api(libs.agrona)
+
+    testImplementation(testFixtures(project(":common")))
 }
 
 val sbeSchemaDir = layout.projectDirectory.dir("src/main/resources/sbe")

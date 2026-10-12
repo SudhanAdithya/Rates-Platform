@@ -63,7 +63,8 @@ Keep this section accurate. Update it in the same commit whenever a command chan
 
 - Build and run all tests: `./gradlew build`
 - One module: `./gradlew :feed-handler:test`
-- Zero allocation check: `./gradlew allocationTest`
+- Zero allocation check: `./gradlew allocationTest` (tests tagged `allocation`, run under Epsilon GC; also part of `build`)
+- Banned system time calls: `./gradlew checkBannedTimeCalls` (hot path modules; also part of `build`)
 - Benchmarks (local only, not in CI): `./gradlew :bench:jmh`
 - Latency harness: `./gradlew :bench:run` (prints p50, p99, p99.9, max)
 - Python tests: `python -m pytest research/`

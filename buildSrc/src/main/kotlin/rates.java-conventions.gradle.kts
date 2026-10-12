@@ -38,6 +38,38 @@ tasks.withType<Test>().configureEach {
     jvmArgs(agronaJvmArgs)
 }
 
+// Tests tagged "allocation" prove a code path allocates nothing. They run only here, in their
+// own JVM under Epsilon GC (a collector that never frees memory), so any steady allocation
+// eventually exhausts the heap. Each test also asserts zero bytes with the thread allocation
+// counter, which fails fast with a readable message. check depends on it, so build runs it.
+val testSourceSet = the<SourceSetContainer>()["test"]
+val allocationTest = tasks.register<Test>("allocationTest") {
+    description = "Runs tests tagged 'allocation' under Epsilon GC"
+    group = "verification"
+    testClassesDirs = testSourceSet.output.classesDirs
+    classpath = testSourceSet.runtimeClasspath
+    useJUnitPlatform {
+        includeTags("allocation")
+    }
+    jvmArgs("-XX:+UnlockExperimentalVMOptions", "-XX:+UseEpsilonGC", "-Xms512m", "-Xmx512m")
+    // Tells AllocationAssertions to verify Epsilon really is the active collector.
+    systemProperty("rates.allocationTest", "true")
+    // Each test class gets a fresh JVM so heap used by one class can't starve the next.
+    forkEvery = 1
+    // A module with no allocation tests yet is fine.
+    filter.isFailOnNoMatchingTests = false
+}
+
+tasks.named<Test>("test") {
+    useJUnitPlatform {
+        excludeTags("allocation")
+    }
+}
+
+tasks.named("check") {
+    dependsOn(allocationTest)
+}
+
 tasks.withType<JavaExec>().configureEach {
     jvmArgs(agronaJvmArgs)
 }
