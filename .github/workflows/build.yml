@@ -1,0 +1,50 @@
+# Builds and tests on every push and pull request, on Java 21 (the release level) and Java 25.
+# Runs the unit tests, the zero allocation tests under Epsilon GC and the banned time call check.
+# JMH benchmarks are local only: shared CI runners are too noisy for meaningful numbers.
+
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Java ${{ matrix.java }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        java: [21, 25]
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+
+      # Validates the wrapper jar checksum and caches Gradle dependencies and outputs.
+      - uses: gradle/actions/setup-gradle@v6
+
+      # -PjavaToolchain runs compile and tests on the matrix JDK; bytecode stays at release 21.
+      - name: Build, test and allocation test
+        run: ./gradlew build allocationTest -PjavaToolchain=${{ matrix.java }} --console=plain
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-reports-java-${{ matrix.java }}
+          path: '**/build/reports/'
+          retention-days: 7
