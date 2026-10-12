@@ -1,0 +1,24 @@
+# Every dependency version in the build is pinned here. Ask before changing anything in this file.
+
+[versions]
+agrona = "2.6.1"          # must match the agrona version sbe-tool depends on
+sbe = "1.40.2"
+junit = "5.14.4"
+assertj = "3.27.7"
+hdrhistogram = "2.2.2"
+jmh = "1.37"
+jmh-plugin = "0.7.3"
+
+[libraries]
+agrona = { module = "org.agrona:agrona", version.ref = "agrona" }
+sbe-tool = { module = "uk.co.real-logic:sbe-tool", version.ref = "sbe" }
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+hdrhistogram = { module = "org.hdrhistogram:HdrHistogram", version.ref = "hdrhistogram" }
+jmh-core = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh" }
+jmh-annprocess = { module = "org.openjdk.jmh:jmh-generator-annprocess", version.ref = "jmh" }
+
+[plugins]
+jmh = { id = "me.champeau.jmh", version.ref = "jmh-plugin" }
