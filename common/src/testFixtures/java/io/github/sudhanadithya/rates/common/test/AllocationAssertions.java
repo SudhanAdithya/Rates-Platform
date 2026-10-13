@@ -13,8 +13,15 @@ import java.lang.management.ManagementFactory;
  * <p>If that window shows any bytes, a second window of the same size runs straight after, and
  * the assertion fails only if the second window allocates too. A per call allocation shows up
  * in both windows (at least 16 bytes x 10M calls = 160 MB each), so detection stays strict. A
- * one off blip, such as the JIT finishing a compile or a TLAB being retired mid window (seen
- * once as 152 bytes), does not repeat and is reported on stderr instead of failing the build.
+ * one off blip does not repeat and is reported on stderr instead of failing the build.
+ *
+ * <p>Known source of such blips (found in M2 task 2.3 with JFR and a heap dump under Epsilon):
+ * the first time a newly installed C2 method runs, HotSpot can turn a String literal from that
+ * class's constant pool into a heap object on the calling thread, for example the message of an
+ * argument check in a constructor that never ran. It happens once per class and compile, never
+ * per call, and the interpreter and C1 show nothing. Code that only runs on a timer (snapshots,
+ * definitions) reaches C2 late, so tests of such code should pass a longer warmup that runs every
+ * path many thousands of times before the windows start.
  *
  * <p>Run these tests with {@code ./gradlew allocationTest}, which also uses Epsilon GC.
  */
@@ -46,6 +53,17 @@ public final class AllocationAssertions {
 
     /** Fails with the byte counts when {@code body} allocates in two consecutive windows. */
     public static void assertNoAllocation(final String name, final Body body) {
+        assertNoAllocation(name, WARMUP_ITERATIONS, body);
+    }
+
+    /**
+     * As {@link #assertNoAllocation(String, Body)}, with a longer warmup for bodies whose rarer
+     * paths need more calls before the JIT has compiled them with C2.
+     */
+    public static void assertNoAllocation(final String name, final int warmupIterations, final Body body) {
+        if (warmupIterations < WARMUP_ITERATIONS) {
+            throw new IllegalArgumentException("warmup must be at least " + WARMUP_ITERATIONS + " iterations");
+        }
         if (!THREADS.isThreadAllocatedMemorySupported() || !THREADS.isThreadAllocatedMemoryEnabled()) {
             throw new IllegalStateException("thread allocation counter not available on this JVM");
         }
@@ -53,16 +71,16 @@ public final class AllocationAssertions {
             throw new IllegalStateException("allocationTest must run under Epsilon GC; check the JVM flags");
         }
 
-        for (int i = 0; i < WARMUP_ITERATIONS; i++) {
+        for (int i = 0; i < warmupIterations; i++) {
             body.run(i);
         }
 
-        final long firstWindow = measureWindow(body, WARMUP_ITERATIONS);
+        final long firstWindow = measureWindow(body, warmupIterations);
         if (firstWindow == 0) {
             return;
         }
 
-        final long secondWindow = measureWindow(body, WARMUP_ITERATIONS + WINDOW_ITERATIONS);
+        final long secondWindow = measureWindow(body, warmupIterations + WINDOW_ITERATIONS);
         if (secondWindow > 0) {
             throw new AssertionError(name + " allocated " + firstWindow + " then " + secondWindow
                 + " bytes in two windows of " + WINDOW_ITERATIONS + " calls (about "
