@@ -15,7 +15,7 @@ Read the doc that matters for the task before planning. Don't load all of them u
 
 ## Current milestone
 
-**M1 Foundations.** Update this line when a milestone is done.
+**M2 Exchange and market data.** Update this line when a milestone is done.
 
 ## Stack
 
