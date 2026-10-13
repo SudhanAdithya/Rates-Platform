@@ -7,4 +7,4 @@ dependencyResolutionManagement {
 }
 
 // Create modules only when the current milestone needs them (CLAUDE.md).
-include("schemas", "common", "bench")
+include("schemas", "common", "venue-sim", "bench")

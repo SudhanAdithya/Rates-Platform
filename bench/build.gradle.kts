@@ -9,6 +9,7 @@ plugins {
 dependencies {
     implementation(project(":schemas"))
     implementation(project(":common"))
+    implementation(project(":venue-sim"))
     implementation(libs.hdrhistogram)
 }
 
