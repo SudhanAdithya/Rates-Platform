@@ -63,4 +63,20 @@ class SchemaRulesTest {
         }
         assertThat(priceFields).isPositive();
     }
+
+    @Test
+    @DisplayName("repeating group entries are padded to a multiple of 8 bytes so int64 fields stay aligned")
+    void groupBlocksAreAligned() {
+        final NodeList groups = schema.getElementsByTagName("group");
+        assertThat(groups.getLength()).isPositive();
+        for (int i = 0; i < groups.getLength(); i++) {
+            final Element group = (Element) groups.item(i);
+            assertThat(group.getAttribute("blockLength"))
+                .as("blockLength of group %s", group.getAttribute("name"))
+                .isNotEmpty();
+            assertThat(Integer.parseInt(group.getAttribute("blockLength")) % 8)
+                .as("blockLength of group %s", group.getAttribute("name"))
+                .isZero();
+        }
+    }
 }
