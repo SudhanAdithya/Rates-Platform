@@ -1,0 +1,34 @@
+# Instruments the platform trades, loaded at startup by InstrumentsYaml into InstrumentRegistry.
+#
+# id                  dense internal id (0 to N-1), used to index arrays on the hot path
+# securityId          venue security id; venue-sim assigns these, they are not real CME ids
+# symbol              CME symbol: product code, month code (Z = December), year digit
+# tickSize256ths      tick size in 1/256 of a point: ZB 8 (1/32), ZN 4 (1/64), ZF 2 (1/128), ZT 1 (1/256)
+# contractMultiplier  dollars per one full point of price
+#
+# Contract specs: CME Group Treasury futures contract specifications.
+
+instruments:
+  - id: 0
+    securityId: 42001
+    symbol: ZNZ6
+    tickSize256ths: 4
+    contractMultiplier: 1000
+
+  - id: 1
+    securityId: 42002
+    symbol: ZFZ6
+    tickSize256ths: 2
+    contractMultiplier: 1000
+
+  - id: 2
+    securityId: 42003
+    symbol: ZTZ6
+    tickSize256ths: 1
+    contractMultiplier: 2000
+
+  - id: 3
+    securityId: 42004
+    symbol: ZBZ6
+    tickSize256ths: 8
+    contractMultiplier: 1000

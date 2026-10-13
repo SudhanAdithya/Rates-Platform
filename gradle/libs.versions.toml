@@ -8,6 +8,7 @@ assertj = "3.27.7"
 hdrhistogram = "2.2.2"
 jmh = "1.37"
 jmh-plugin = "0.7.3"
+snakeyaml-engine = "3.2"  # startup config only, never on the hot path
 
 [libraries]
 agrona = { module = "org.agrona:agrona", version.ref = "agrona" }
@@ -18,6 +19,7 @@ junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher
 assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 hdrhistogram = { module = "org.hdrhistogram:HdrHistogram", version.ref = "hdrhistogram" }
 jmh-core = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh" }
+snakeyaml-engine = { module = "org.snakeyaml:snakeyaml-engine", version.ref = "snakeyaml-engine" }
 jmh-annprocess = { module = "org.openjdk.jmh:jmh-generator-annprocess", version.ref = "jmh" }
 
 [plugins]
